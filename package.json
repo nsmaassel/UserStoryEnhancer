@@ -1,0 +1,32 @@
+{
+  "name": "userstoryenhancer",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0-alpha.7",
+    "dotenv": "^16.3.1",
+    "langchain": "^0.0.130"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.3",
+    "@types/node": "^18.x",
+    "jest": "^29.6.2",
+    "jest-mock-extended": "^3.0.5",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^4.9.5"
+  },
+  "main": "dist/src/functions/*.js",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
