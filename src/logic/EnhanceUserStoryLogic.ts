@@ -7,22 +7,23 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 const minUserStoryLength = 50;
 
 // Define the schema for the user story we'll return
-const userStorySchema = z
-  .object({
-    persona: z.string(),
-    requirement: z.string(),
-    businessValue: z.string(),
-  })
-  .refine(
-    (data) =>
-      `As a ${data.persona}, I want ${data.requirement}, so that ${data.businessValue}`.match(
-        /As a .+, I want .+, so that .+/
-      ),
-    {
-      message:
-        "User story must be in the format: 'As a <persona>, I want <requirement>, so that <businessValue>'",
-    }
-  );
+// const userStorySchema = z
+//   .object({
+//     persona: z.string(),
+//     requirement: z.string(),
+//     businessValue: z.string(),
+//   })
+//   .refine(
+//     (data) =>
+//       `As a ${data.persona}, I want ${data.requirement}, so that ${data.businessValue}`.match(
+//         /As a .+, I want .+, so that .+/
+//       ),
+//     {
+//       message:
+//         "User story must be in the format: 'As a <persona>, I want <requirement>, so that <businessValue>'",
+//     }
+//   );
+const userStorySchema = z.string();
 
 // The acceptance criteria will just be a list of strings
 const acceptanceCriteriaSchema = z.array(z.string());
