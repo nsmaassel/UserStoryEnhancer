@@ -6,6 +6,33 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 // Minimum length for the input user story
 const minUserStoryLength = 50;
 
+// Define the schema for the user story we'll return
+const userStorySchema = z
+  .object({
+    persona: z.string(),
+    requirement: z.string(),
+    businessValue: z.string(),
+  })
+  .refine(
+    (data) =>
+      `As a ${data.persona}, I want ${data.requirement}, so that ${data.businessValue}`.match(
+        /As a .+, I want .+, so that .+/
+      ),
+    {
+      message:
+        "User story must be in the format: 'As a <persona>, I want <requirement>, so that <businessValue>'",
+    }
+  );
+
+// The acceptance criteria will just be a list of strings
+const acceptanceCriteriaSchema = z.array(z.string());
+
+// Combine the two schemas into one
+const enhancedUserStorySchema = z.object({
+  userStory: userStorySchema,
+  acceptanceCriteria: acceptanceCriteriaSchema,
+});
+
 export const enhanceUserStoryLogic = async (
   inputtedUserStory: string,
   llm: OpenAI,
@@ -24,20 +51,9 @@ export const enhanceUserStoryLogic = async (
     });
   }
 
-  // Define schema using Zod
-  const parser = StructuredOutputParser.fromZodSchema(
-    z.object({
-      userStory: z.string().describe("the enhanced user story"),
-      acceptanceCriteria: z
-        .array(z.string())
-        .describe(
-          "specific acceptance criteria for developers to test against"
-        ),
-    })
-  );
-
+  // Instructr the LLM on what kind of output we'd like using our schema
+  const parser = StructuredOutputParser.fromZodSchema(enhancedUserStorySchema);
   const formatInstructions = parser.getFormatInstructions();
-
   const prompt = new PromptTemplate({
     template:
       "Given the user story '{inputtedUserStory}', enhance it and provide specific acceptance criteria that developers can write tests for. Please limit the enhanced user story to one requirement.\n{format_instructions}\n{inputtedUserStory}",
