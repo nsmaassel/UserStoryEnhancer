@@ -40,15 +40,7 @@ export const enhanceUserStoryLogic = async (
 
   const prompt = new PromptTemplate({
     template:
-      "Given the following user stories, enhance them and provide specific acceptance criteria that developers can write tests for. Please limit the enhanced user story to one requirement.\n\n" +
-      "Example 1:\n" +
-      "Input: 'As a user, I want to be able to register an account so that I can access the platform.'\n" +
-      "Output: 'As a new user, I want to be able to register an account with my email and a password so that I can create a personal profile and access the platform.'\n\n" +
-      "Example 2:\n" +
-      "Input: 'As an admin, I want to view user statistics so that I can understand user behavior.'\n" +
-      "Output: 'As an admin, I want to view detailed user statistics including active users, most used features, and user growth so that I can understand user behavior and make informed decisions.'\n\n" +
-      "Now, enhance this user story:\n" +
-      "'{inputtedUserStory}'",
+      "Given the user story '{inputtedUserStory}', enhance it and provide specific acceptance criteria that developers can write tests for. Please limit the enhanced user story to one requirement.\n{format_instructions}\n{inputtedUserStory}",
     inputVariables: ["inputtedUserStory"],
     partialVariables: { format_instructions: formatInstructions },
   });
@@ -85,4 +77,4 @@ export const enhanceUserStoryLogic = async (
   throw new Error(
     `After ${maxAttempts} attempts, the response from OpenAI did not match the expected format.`
   );
-}
+};
