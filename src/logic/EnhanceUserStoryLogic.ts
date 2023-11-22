@@ -59,6 +59,7 @@ export const enhanceUserStoryLogic = async (
   let structuredResponse;
   let attempt = 0;
   const maxAttempts = 5;
+  const responses = [];
 
   while (attempt < maxAttempts) {
     try {
@@ -74,11 +75,14 @@ export const enhanceUserStoryLogic = async (
       return structuredResponse;
     } catch (error) {
       console.error(`Error on attempt ${attempt + 1}`, error);
+      responses.push(openAIResponse);
       attempt++;
     }
   }
 
+  console.error("OpenAI responses:", responses);
+
   throw new Error(
-    "After 5 attempts, the response from OpenAI did not match the expected format."
+    `After ${maxAttempts} attempts, the response from OpenAI did not match the expected format.`
   );
-};
+}
