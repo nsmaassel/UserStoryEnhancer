@@ -31,7 +31,6 @@ export async function EnhanceUserStory(
     );
 
     return {
-      // 200 is used for successful requests
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -42,10 +41,14 @@ export async function EnhanceUserStory(
     context.log(`Error: ${error.message}`);
 
     if (error.message.includes("too short")) {
-      // 400 is used for bad requests from the client
       return { status: 400, body: JSON.stringify({ error: error.message }) };
+    } else if (error.message.includes("unauthorized")) {
+      return { status: 401, body: JSON.stringify({ error: error.message }) };
+    } else if (error.message.includes("forbidden")) {
+      return { status: 403, body: JSON.stringify({ error: error.message }) };
+    } else if (error.message.includes("not found")) {
+      return { status: 404, body: JSON.stringify({ error: error.message }) };
     } else {
-      // 500 is used for internal server errors
       return { status: 500, body: JSON.stringify({ error: error.message }) };
     }
   }
