@@ -36,6 +36,10 @@ This repository contains an Azure Function App that enhances user stories. Given
 
 Feel free to fork the repository, submit pull requests, or provide feedback on enhancements and improvements. Your collaboration is welcome!
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
 ---
 
 By leveraging the power of machine learning, this function aims to improve the quality and consistency of user stories across projects. Thank you for your interest and support!
