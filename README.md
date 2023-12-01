@@ -1,7 +1,7 @@
 # Enhanced User Story Function App
 
 ## Overview
-This repository contains an Azure Function App that enhances user stories. Given a user story string, the function leverages LangChain and OpenAI's API to return a JSON object with an enhanced user story and an array of acceptance criteria. This could be seamlessly integrated with task management tools like Asana, providing recommendations or improvements upon the creation of a new user story.
+This repository contains an Azure Function App that enhances user stories. Given a user story string, the function leverages LangChain and OpenAI's API to return a JSON object with an enhanced user story and an array of acceptance criteria. This could be seamlessly integrated with task management tools like Jira, Asana, Trello, etc. providing recommendations or improvements upon the creation of a new user story.
 
 ## Features
 - Enhances user stories by tapping into the power of OpenAI's API.
