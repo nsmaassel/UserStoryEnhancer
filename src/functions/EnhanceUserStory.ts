@@ -4,7 +4,7 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { OpenAI } from "langchain/llms/openai";
+import { OpenAI } from "@langchain/openai";
 import { enhanceUserStoryLogic } from "../logic/EnhanceUserStoryLogic";
 
 // Setup dotenv
