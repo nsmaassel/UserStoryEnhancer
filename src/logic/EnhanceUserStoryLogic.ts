@@ -2,27 +2,12 @@ import { z } from "zod";
 import { OpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "langchain/output_parsers";
+import { validateUserStory } from "./UserStoryValidator";
 
 // Minimum length for the input user story
 const minUserStoryLength = 50;
 
-// Define the schema for the user story we'll return
-// const userStorySchema = z
-//   .object({
-//     persona: z.string(),
-//     requirement: z.string(),
-//     businessValue: z.string(),
-//   })
-//   .refine(
-//     (data) =>
-//       `As a ${data.persona}, I want ${data.requirement}, so that ${data.businessValue}`.match(
-//         /As a .+, I want .+, so that .+/
-//       ),
-//     {
-//       message:
-//         "User story must be in the format: 'As a <persona>, I want <requirement>, so that <businessValue>'",
-//     }
-//   );
+// Define the schema for the user story
 const userStorySchema = z.string();
 
 // The acceptance criteria will just be a list of strings
@@ -37,7 +22,8 @@ const enhancedUserStorySchema = z.object({
 export const enhanceUserStoryLogic = async (
   inputtedUserStory: string,
   llm: OpenAI,
-  openAIApiKey: string
+  openAIApiKey: string,
+  isValidUserStory: (input: string) => boolean = validateUserStory
 ) => {
   if (inputtedUserStory.length < minUserStoryLength) {
     throw new Error(
@@ -52,12 +38,12 @@ export const enhanceUserStoryLogic = async (
     });
   }
 
-  // Instructr the LLM on what kind of output we'd like using our schema
+  // Instruct the LLM on what kind of output we'd like using our schema
   const parser = StructuredOutputParser.fromZodSchema(enhancedUserStorySchema);
   const formatInstructions = parser.getFormatInstructions();
   const prompt = new PromptTemplate({
     template:
-      "Given the user story '{inputtedUserStory}', enhance it and provide specific acceptance criteria that developers can write tests for. Please limit the enhanced user story to one requirement.\n{format_instructions}\n{inputtedUserStory}",
+      "Given the user story '{inputtedUserStory}', enhance it to clearly describe a feature from the perspective of a user, including specific actions, roles, or outcomes. The enhanced user story should be limited to one requirement. Provide specific acceptance criteria that developers can write tests for. The acceptance criteria should be a list of SMART (Specific, Measurable, Achievable, Relevant, Time-bound) statements. Please limit the enhanced user story to one requirement.\n{format_instructions}\n{inputtedUserStory}",
     inputVariables: ["inputtedUserStory"],
     partialVariables: { format_instructions: formatInstructions },
   });
@@ -65,33 +51,31 @@ export const enhanceUserStoryLogic = async (
   const input = await prompt.format({ inputtedUserStory: inputtedUserStory });
 
   let openAIResponse;
-  let structuredResponse;
   let attempt = 0;
   const maxAttempts = 5;
   const responses = [];
 
   while (attempt < maxAttempts) {
     try {
-      console.group("Calling OpenAI with prompt");
-      console.debug("Prompt:", input);
-      openAIResponse = await llm.call(input);
-      console.debug("Response:", openAIResponse);
-      console.groupEnd();
+      const response = await llm.invoke(input);
 
-      structuredResponse = await parser.parse(openAIResponse);
-
-      // If parsing was successful, return the result
-      return structuredResponse;
+      // Use the passed-in function to validate the response
+      if (isValidUserStory(response)) {
+        // If the response is valid, return it
+        return response;
+      } else {
+        // If the response is not valid, throw an error
+        throw new Error("Invalid response");
+      }
     } catch (error) {
-      console.error(`Error on attempt ${attempt + 1}`, error);
       responses.push(openAIResponse);
       attempt++;
     }
   }
 
-  console.error("OpenAI responses:", responses);
-
   throw new Error(
-    `After ${maxAttempts} attempts, the response from OpenAI did not match the expected format.`
+    `After ${maxAttempts} attempts, the response from OpenAI did not match the expected format. OpenAI responses: ${responses.map(
+      (response, index) => `\nResponse ${index + 1}: ${response}`
+    )}`
   );
 };

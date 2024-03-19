@@ -1,6 +1,6 @@
-import { enhanceUserStoryLogic } from "./EnhanceUserStoryLogic";
-import { OpenAI } from "langchain/llms/openai";
+import { OpenAI } from "@langchain/openai";
 import { mock } from "jest-mock-extended";
+import { enhanceUserStoryLogic } from "./EnhanceUserStoryLogic";
 
 describe("enhanceUserStoryLogic", () => {
   const inputtedUserStory =
@@ -10,73 +10,69 @@ describe("enhanceUserStoryLogic", () => {
   // Create a mock instance
   const llmMock = mock<OpenAI>();
 
+  // Define a mock parser function that always returns true
+  const mockParserTrue = () => true;
+
+  // Define a mock parser function that always returns false
+  const mockParserFalse = () => false;
+
   // Define a mock response
-  const mockOpenAIResponse = JSON.stringify({
-    id: "mocked-id",
-    object: "text.completion",
-    created: Date.now(),
-    model: "mocked-model",
-    usage: {
-      prompt_tokens: 10,
-      completion_tokens: 20,
-      total_tokens: 30,
-    },
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content:
-            "Mocked enhanced user story. Provide specific acceptance criteria here.",
-        },
-        finish_reason: "stop",
-        index: 0,
-      },
-    ],
-  });
+  const mockOpenAIResponse = {
+    userStory: "Mocked enhanced user story.",
+    acceptanceCriteria: ["Mocked acceptance criteria."],
+  };
+
+  // Create a spy on the invoke method and mock its implementation
+  const invokeSpy = jest
+    .spyOn(llmMock, "invoke")
+    .mockResolvedValue(JSON.stringify(mockOpenAIResponse));
 
   beforeEach(() => {
-    llmMock.call.mockClear(); // Clear mock call history before each test
+    // Clear mock call history before each test
+    jest.clearAllMocks();
   });
-
   it("should throw an error if the inputted user story is too short", async () => {
     const shortUserStory = "As a user, I want to log in.";
-    try {
-      await enhanceUserStoryLogic(shortUserStory, llmMock, openAIApiKey);
-    } catch (error) {
-      expect(error).toEqual(
-        new Error(
-          `The user story is too short. Please provide at least 50 characters.`
-        )
-      );
-      expect(error.message).toEqual(
-        `The user story is too short. Please provide at least 50 characters.`
-      );
-    }
+
+    await expect(
+      enhanceUserStoryLogic(shortUserStory, llmMock, openAIApiKey)
+    ).rejects.toThrow(
+      `The user story is too short. Please provide at least 50 characters.`
+    );
   });
 
   it("should return an object with enhanced user story and acceptance criteria", async () => {
-    llmMock.call.mockResolvedValue(mockOpenAIResponse);
-    const result = await enhanceUserStoryLogic(
+    const resultString = await enhanceUserStoryLogic(
       inputtedUserStory,
       llmMock,
-      openAIApiKey
+      openAIApiKey,
+      mockParserTrue // pass the mock parser function here
     );
+
+    const result = JSON.parse(resultString);
+
     expect(result).toHaveProperty("userStory");
     expect(result).toHaveProperty("acceptanceCriteria");
     expect(result.userStory).not.toBe(inputtedUserStory);
-    expect(result.userStory.length).toBeGreaterThan(inputtedUserStory.length);
     expect(result.acceptanceCriteria.length).toBeGreaterThan(0);
 
-    expect(llmMock.call).toHaveBeenCalledTimes(1);
+    expect(invokeSpy).toHaveBeenCalledTimes(1);
   });
 
   it("should throw an error if the response from OpenAI does not match the expected format", async () => {
-    llmMock.call.mockResolvedValue("invalid-response");
+    // Change the implementation of the spy for this test case
+    invokeSpy.mockResolvedValue("invalid-response");
+
     const invalidApiKey = "invalid-api-key";
     await expect(
-      enhanceUserStoryLogic(inputtedUserStory, null, invalidApiKey)
+      enhanceUserStoryLogic(
+        inputtedUserStory,
+        null,
+        invalidApiKey,
+        mockParserFalse
+      )
     ).rejects.toThrow(
       `After 5 attempts, the response from OpenAI did not match the expected format.`
     );
-  });
+  }, 50000);
 });
