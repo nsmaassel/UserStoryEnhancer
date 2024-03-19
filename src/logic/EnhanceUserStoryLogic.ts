@@ -59,6 +59,9 @@ export const enhanceUserStoryLogic = async (
     try {
       const response = await llm.invoke(input);
 
+      // Log the response for debugging purposes
+      console.log("Received response from OpenAI:", response);
+
       // Use the passed-in function to validate the response
       if (isValidUserStory(response)) {
         // If the response is valid, return it
