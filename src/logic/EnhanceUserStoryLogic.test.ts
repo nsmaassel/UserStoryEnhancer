@@ -75,4 +75,18 @@ describe("enhanceUserStoryLogic", () => {
       `After 5 attempts, the response from OpenAI did not match the expected format.`
     );
   }, 50000);
+
+  it("should return a valid JSON object", async () => {
+    // Mock the OpenAI response with newline characters and leading spaces
+    invokeSpy.mockResolvedValue(`\n\n{\n    "userStory": "As a user, I want to log in so that I can access my account.",\n    "acceptanceCriteria": ["Given that I am on the login page, when I enter valid credentials, then I should be redirected to my account page."]\n}`);
+  
+    const result = await enhanceUserStoryLogic(inputtedUserStory, llmMock, openAIApiKey, mockParserTrue);
+  
+    // Check if the result can be stringified and parsed without throwing an error
+    expect(() => {
+      const stringified = JSON.stringify(result);
+      const parsed = JSON.parse(stringified);
+      expect(parsed).toEqual(result);
+    }).not.toThrow();
+  });
 });

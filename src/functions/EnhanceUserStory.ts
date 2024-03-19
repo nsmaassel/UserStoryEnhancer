@@ -30,12 +30,13 @@ export async function EnhanceUserStory(
       process.env.OPENAI_API_KEY
     );
 
+    // Return the structuredResponse object directly. Azure Functions will automatically stringify the object and format it as a JSON string in the HTTP response.
     return {
       status: 200,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(structuredResponse),
+      body: structuredResponse,
     };
   } catch (error) {
     context.log(`Error: ${error.message}`);
