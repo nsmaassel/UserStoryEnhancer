@@ -8,7 +8,10 @@
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
     "start": "func start",
-    "test": "jest"
+    "test": "jest",
+    "eval": "npx ts-node examples/runEvals.ts",
+    "eval:basic": "npx ts-node -e \"import('./examples/runEvals').then(m => m.runBasicEvals())\"",
+    "eval:watch": "nodemon --exec \"npm run eval\" --ext ts --watch src/evals"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0-alpha.7",
